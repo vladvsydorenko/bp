@@ -1,4 +1,5 @@
 import {ISocket} from './ISocket';
+import {t_position} from './types';
 
 export interface INode {
     // unique id
@@ -11,4 +12,6 @@ export interface INode {
     sources: ISocket[];
     // source sockets
     sinks: ISocket[];
+    // node position on the scene
+    position: t_position;
 }

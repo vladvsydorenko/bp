@@ -1,0 +1,86 @@
+@import "../css/settings";
+@import "../css/colors";
+
+@mixin socketType($color) {
+  background-color: $color;
+
+  &:hover {
+    background-color: darken($color, 20%);
+    box-shadow: 0 0 4px #666;
+  }
+}
+
+.node {
+  display: inline-block;
+  position: absolute;
+  background-color: $color_node_bg;
+  border-radius: 10px 10px 10px 10px;
+
+  &.selected {
+    margin-left: -2px;
+    margin-top: -2px;
+    border: 2px solid $color_selected;
+  }
+}
+.nodeTitle {
+  margin: 0 0 4px 0;
+  padding: 2px 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: normal;
+  background-color: #666;
+  border-radius: 10px 10px 0 0;
+}
+
+.sources {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: -$socketCircleSize/2;
+  margin-right: $socketCircleSize;
+}
+.sinks {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: $socketCircleSize;
+  margin-right: -$socketCircleSize/2;
+}
+
+.socketCircle {
+  display: inline-block;
+  vertical-align: top;
+  width: $socketCircleSize;
+  height: $socketCircleSize;
+  border-radius: $socketCircleSize;
+  background-color: #000;
+
+  &.type_string {@include socketType($color_type_string)}
+  &.type_number {@include socketType($color_type_number)}
+  &.selected {
+    margin-left: -2px;
+    margin-top: -2px;
+    //background-color: $color_selected;
+    border: 2px solid $color_selected;
+    //@include socketType($color_selected)
+  }
+  &.unselected {
+    margin-left: 0;
+    //margin-top: -2px;
+    //background-color: $color_selected;
+    //border: 2px solid $color_selected;
+    @include socketType(#555);
+  }
+}
+.socketTitle {
+  display: inline-block;
+  vertical-align: top;
+  line-height: 12px;
+  margin: 0;
+  padding: 0 2px;
+  font-size: 14px;
+  font-weight: normal;
+
+  &.type_string {color: $color_type_string;}
+  &.type_number {color: $color_type_number;}
+}
+
+

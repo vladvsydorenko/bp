@@ -1,8 +1,9 @@
-import {INode} from '../src/interfaces/INode';
 import {IScene} from '../src/interfaces/IScene';
 import {SceneUtil} from '../src/util/SceneUtil';
 import {simpleNodeHandler} from '../src/nodeHandlers/simpleNodeHandler';
+import {compile} from '../src/util/compile';
 import {ILine} from '../src/interfaces/ILine';
+import {renderEditor} from '../src/editor/renderEditor';
 
 const scene: IScene = {
     nodes: [
@@ -32,6 +33,7 @@ const scene: IScene = {
                     nodeId: 'test',
                 },
             ],
+            position: {x: 80, y: 80}
         },
         {
             id: 'test2',
@@ -46,7 +48,7 @@ const scene: IScene = {
                 },
                 {
                     name: 'age',
-                    type: 'number',
+                    type: 'string',
                     group: 'sources',
                     nodeId: 'test2',
                 },
@@ -59,6 +61,35 @@ const scene: IScene = {
                     nodeId: 'test2',
                 },
             ],
+            position: {x: 120, y: 200}
+        },
+        {
+            id: 'test3',
+            name: 'userTitle',
+            handler: 'default',
+            sources: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    group: 'sources',
+                    nodeId: 'test3',
+                },
+                {
+                    name: 'age',
+                    type: 'string',
+                    group: 'sources',
+                    nodeId: 'test3',
+                },
+            ],
+            sinks: [
+                {
+                    name: 'title',
+                    type: 'string',
+                    group: 'sinks',
+                    nodeId: 'test3',
+                },
+            ],
+            position: {x: 300, y: 180}
         }
     ],
     lines: [],
@@ -67,14 +98,5 @@ const scene: IScene = {
     },
 };
 
-const line: ILine = {
-    id: 'line_test1',
-    sinkSocket: scene.nodes[0].sinks[0],
-    sourceSocket: scene.nodes[1].sources[0],
-};
 
-const scene2 = SceneUtil.canAddLine(line, scene) ? SceneUtil.addLine(line, scene) : scene;
-console.log(scene2);
-const scene3 = SceneUtil.removeNodeById('test', scene);
-console.log(scene3);
-
+renderEditor(scene);
