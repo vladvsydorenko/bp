@@ -6,9 +6,17 @@ import {SceneUtil} from './SceneUtil';
 function compileSources({sources}: INode, id) {
     let text = `const ${id}Sources = {`;
     text += sources.reduce((text, {name}, index: number) => {
-        return text + `\n    ${name}: async()` + (index + 1 < sources.length ? ',' : '');
+        return text + `\n    ${name}: hold(1, async())` + (index + 1 < sources.length ? ',' : '');
     }, '');
     text += '\n};';
+
+    text += sources.reduce((text, {name, type, value}, index: number) => {
+        if (typeof value !== 'undefined') {
+            const compiledValue = type === 'number' ? value : `'${value}'`;
+            return text + `\n${id}Sources.${name}.next(${compiledValue});\n`;
+        }
+        return text + '\n';
+    }, '');
     return text;
 }
 
@@ -33,9 +41,9 @@ function compileLine({sourceSocket, sinkSocket}: ILine, scene: IScene) {
 export function compile(scene: IScene) {
     let text = '';
     text += scene.nodes.reduce((text, node, index) => {
-        return text + '\n' + compileSources(node, `node${index}`);
+        return text + compileSources(node, `node${index}`);
     }, '');
-    text += '\n' + scene.nodes.reduce((text, node, index) => {
+    text += scene.nodes.reduce((text, node, index) => {
         return text + '\n' + compileSinks(node, `node${index}`);
     }, '');
     text += '\n' + scene.lines.reduce((text, line, index) => {

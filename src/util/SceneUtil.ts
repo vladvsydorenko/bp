@@ -39,6 +39,8 @@ export namespace SceneUtil {
     }
     export function addLine(line: ILine, scene: IScene): IScene {
         scene.lines.push(line);
+        if (typeof line.sourceSocket.value !== 'undefined')
+            line.sourceSocket.value = undefined;
         return scene;
     }
     export function removeLineById(id: string, scene: IScene): IScene {

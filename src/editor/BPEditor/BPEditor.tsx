@@ -6,21 +6,22 @@ import {ISocketPositions} from '../../interfaces/ISocketPositions';
 import {SceneUtil} from '../../util/SceneUtil';
 import {INode} from '../../interfaces/INode';
 import {t_position} from '../../interfaces/types';
-import {compile} from '../../util/compile';
 import {BPLineList} from '../BPLineList/BPLineList';
 import {ISocket} from '../../interfaces/ISocket';
 import {UID} from '../../util/uid';
-const css = require('./BPNodeList.scss');
+import {merge} from 'most';
+const css = require('./BPEditor.scss');
 
-export interface IBPNodeListProps {
+export interface IBPEditorProps {
     scene: IScene;
     socketPositions$: AsyncSubject<ISocketPositions>;
+    onChange: (scene: IScene) => void;
 }
-export interface IBPNodeListState {
+export interface IBPEditorState {
     canvasPosition: t_position;
 }
 
-export class BPNodeList extends React.Component<IBPNodeListProps, IBPNodeListState> {
+export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
     private selectedNode: INode | null;
     private selectedSinkSocket: ISocket | null;
     private selectedSourceSocket: ISocket | null;
@@ -33,7 +34,7 @@ export class BPNodeList extends React.Component<IBPNodeListProps, IBPNodeListSta
     private onSocketSelectFn = this.onSocketSelect.bind(this);
     private onLineSelectFn = this.onLineSelect.bind(this);
     private onCanvasSelectFn = this.onCanvasSelect.bind(this);
-    private unselectAllFn = this.unselectAll.bind(this);
+    private onValueChangeFn = this.onValueChange.bind(this);
     private stopDragFn = this.stopDrag.bind(this);
 
     constructor(props) {
@@ -52,10 +53,12 @@ export class BPNodeList extends React.Component<IBPNodeListProps, IBPNodeListSta
             const isSelected = !!this.selectedNode && node.id === this.selectedNode.id;
             return <BPNode key={node.id}
                            node={node}
+                           scene={scene}
                            isSelected={isSelected}
                            selectedSinkSocket={this.selectedSinkSocket}
                            onNodeSelect={this.onNodeSelectFn}
-                           onSocketSelect={this.onSocketSelectFn}/>
+                           onSocketSelect={this.onSocketSelectFn}
+                           onValueChange={this.onValueChangeFn} />
         });
         const style = {
             transform: `translate(${canvasPosition.x}px, ${canvasPosition.y}px)`,
@@ -80,10 +83,9 @@ export class BPNodeList extends React.Component<IBPNodeListProps, IBPNodeListSta
     }
     public componentDidMount() {
         const self = this;
-        this.updateState$.throttle(10).observe(state => self.setState(state));
-        this.updateState$.debounce(10).observe(state => self.setState(state));
+        merge(this.updateState$.throttle(10), this.updateState$.debounce(10))
+            .observe(state => self.setState(state));
         this.updateSocketPositions_DIRTY();
-        // document.addEventListener('mousedown', this.onCanvasSelectFn);
     }
     private updateSocketPositions_DIRTY() {
         const elements = document.querySelectorAll('[data-socket]');
@@ -102,6 +104,15 @@ export class BPNodeList extends React.Component<IBPNodeListProps, IBPNodeListSta
         this.props.socketPositions$.next(positions);
     }
 
+    private onValueChange(value: any, socket: ISocket) {
+        const node = SceneUtil.findNodeById(socket.nodeId, this.props.scene);
+        if (!node) return;
+        const sourceSocket = node.sources.find(source => source.name === socket.name);
+        if (!sourceSocket) return;
+        sourceSocket.value = value;
+        this.props.onChange(this.props.scene);
+        this.updateState$.next(this.state);
+    }
     private onCanvasSelect(event: MouseEvent) {
         this.isCanvasSelected = true;
         this.unselectAll();
@@ -138,7 +149,7 @@ export class BPNodeList extends React.Component<IBPNodeListProps, IBPNodeListSta
             if (SceneUtil.canAddLine(line, scene))
                 SceneUtil.addLine(line, this.props.scene);
             this.selectedSourceSocket = null;
-            // this.selectedSinkSocket = null;
+            this.props.onChange(this.props.scene);
         }
         this.updateState$.next(this.state);
     }

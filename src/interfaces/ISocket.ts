@@ -7,4 +7,6 @@ export interface ISocket {
     group: string;
     // node id
     nodeId: string;
+    // raw value
+    value?: string|number;
 }

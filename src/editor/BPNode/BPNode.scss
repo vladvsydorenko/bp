@@ -13,6 +13,7 @@
 .node {
   display: inline-block;
   position: absolute;
+  padding-bottom: 2px;
   background-color: $color_node_bg;
   border-radius: 10px 10px 10px 10px;
 
@@ -45,6 +46,9 @@
   margin-right: -$socketCircleSize/2;
 }
 
+.socket {
+  margin-bottom: 10px;
+}
 .socketCircle {
   display: inline-block;
   vertical-align: top;
@@ -70,9 +74,11 @@
     @include socketType(#555);
   }
 }
-.socketTitle {
+.socketTitleContainer {
   display: inline-block;
   vertical-align: top;
+}
+.socketTitle {
   line-height: 12px;
   margin: 0;
   padding: 0 2px;
@@ -83,4 +89,18 @@
   &.type_number {color: $color_type_number;}
 }
 
+.socketInput {
+  max-width: 68px;
+  height: $socketCircleSize;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  border: none;
+  color: $color_input_font;
+  background-color: darken($color_node_bg, 4%);
+
+  &[type=number] {
+    max-width: 40px;
+  }
+}
 
