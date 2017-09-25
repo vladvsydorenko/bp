@@ -8,7 +8,13 @@ export const simpleNodeHandler: INodeHandler = {
         const hasDifferentNodes = sinkSocket.nodeId !== sourceSocket.nodeId;
         const hasRightGroups = sinkSocket.group === 'sinks' && sourceSocket.group === 'sources';
         const hasRightTypes = sourceSocket.type === 'any' || sinkSocket.type === sourceSocket.type;
+        const isAlreadyAdded = scene.lines.some(line => {
+            return line.sourceSocket.nodeId === sourceSocket.nodeId &&
+                line.sinkSocket.nodeId === sinkSocket.nodeId &&
+                line.sourceSocket.name === sourceSocket.name &&
+                line.sinkSocket.name === sinkSocket.name;
+        });
 
-        return hasDifferentNodes && hasRightGroups && hasRightTypes;
+        return hasDifferentNodes && hasRightGroups && hasRightTypes && !isAlreadyAdded;
     }
 };
