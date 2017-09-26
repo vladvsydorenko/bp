@@ -66,11 +66,13 @@ export namespace SceneUtil {
         return scene;
     }
 
-    export function makeNode({sources, sinks, name}: INodeDescriptor) {
+    export function makeNode(descriptor: INodeDescriptor) {
+        const {sources, sinks, name} = descriptor;
         const id = UID('node');
         return {
             id,
             name,
+            description: descriptor['description'],
             sources: makeSockets(sources, 'sources', id),
             sinks: makeSockets(sinks, 'sinks', id),
             handler: 'default',

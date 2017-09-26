@@ -121,6 +121,10 @@
                                   supported by Chrome and Opera */ }
   .BPNode__socketInput___1I6nT[type=number] {
     max-width: 40px; }
+
+.BPNode__description___1OtDI {
+  padding: 0 6px;
+  color: #eee; }
 .BPLineList__canvas___2Z5Mt {
   position: absolute;
   top: 0;

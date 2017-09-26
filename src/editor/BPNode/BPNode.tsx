@@ -106,6 +106,7 @@ export function BPNode({node, scene, isSelected, selectedSinkSocket,
     return (
         <div className={className} style={style} onMouseDown={onMouseDown}>
             <h2 className={css.nodeTitle}>{node.name}</h2>
+            { node['description'] && <p className={css.description}>{node['description']}</p> }
             <div className={css.sources}>
                 {renderSockets(sources, scene, selectedSinkSocket, onSocketSelect, onValueChange)}
             </div>

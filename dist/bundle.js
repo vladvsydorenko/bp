@@ -6389,11 +6389,13 @@ var SceneUtil;
         return scene;
     }
     SceneUtil.removeLineById = removeLineById;
-    function makeNode({ sources, sinks, name }) {
+    function makeNode(descriptor) {
+        const { sources, sinks, name } = descriptor;
         const id = uid_1.UID('node');
         return {
             id,
             name,
+            description: descriptor['description'],
             sources: makeSockets(sources, 'sources', id),
             sinks: makeSockets(sinks, 'sinks', id),
             handler: 'default',
@@ -28816,6 +28818,7 @@ function BPNode({ node, scene, isSelected, selectedSinkSocket, onNodeSelect, onS
     }
     return (React.createElement("div", { className: className, style: style, onMouseDown: onMouseDown },
         React.createElement("h2", { className: css.nodeTitle }, node.name),
+        node['description'] && React.createElement("p", { className: css.description }, node['description']),
         React.createElement("div", { className: css.sources }, renderSockets(sources, scene, selectedSinkSocket, onSocketSelect, onValueChange)),
         React.createElement("div", { className: css.sinks }, renderSockets(sinks, scene, selectedSinkSocket, onSocketSelect, onValueChange))));
 }
@@ -28827,7 +28830,7 @@ exports.BPNode = BPNode;
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
-module.exports = {"node":"BPNode__node___xlEJG","selected":"BPNode__selected___1b4Ve","inactive":"BPNode__inactive___Qqffc","nodeTitle":"BPNode__nodeTitle___d_mqG","sources":"BPNode__sources___1EqqY","sinks":"BPNode__sinks___1Qkyv","socket":"BPNode__socket___eeiuG","socketCircle":"BPNode__socketCircle___3WhnC","type_string":"BPNode__type_string___17pxE","type_number":"BPNode__type_number___cwspR","type_boolean":"BPNode__type_boolean___g6bgP","type_any":"BPNode__type_any___qVjdR","unselected":"BPNode__unselected___1nZ5R","socketTitleContainer":"BPNode__socketTitleContainer___1O0pn","socketTitle":"BPNode__socketTitle___1X20H","socketInput":"BPNode__socketInput___1I6nT"};
+module.exports = {"node":"BPNode__node___xlEJG","selected":"BPNode__selected___1b4Ve","inactive":"BPNode__inactive___Qqffc","nodeTitle":"BPNode__nodeTitle___d_mqG","sources":"BPNode__sources___1EqqY","sinks":"BPNode__sinks___1Qkyv","socket":"BPNode__socket___eeiuG","socketCircle":"BPNode__socketCircle___3WhnC","type_string":"BPNode__type_string___17pxE","type_number":"BPNode__type_number___cwspR","type_boolean":"BPNode__type_boolean___g6bgP","type_any":"BPNode__type_any___qVjdR","unselected":"BPNode__unselected___1nZ5R","socketTitleContainer":"BPNode__socketTitleContainer___1O0pn","socketTitle":"BPNode__socketTitle___1X20H","socketInput":"BPNode__socketInput___1I6nT","description":"BPNode__description___1OtDI"};
 
 /***/ }),
 /* 266 */
