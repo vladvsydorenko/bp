@@ -28,6 +28,7 @@ export function renderSockets(sockets: ISocket[], scene: IScene, selectedSinkSoc
         };
         const isSelected = selectedSinkSocket &&
             selectedSinkSocket.nodeId === socket.nodeId &&
+            selectedSinkSocket.group === socket.group &&
             selectedSinkSocket.name === socket.name;
 
         let className = `${css.socketCircle} ${css[`type_${type}`]}`;
@@ -41,6 +42,7 @@ export function renderSockets(sockets: ISocket[], scene: IScene, selectedSinkSoc
                                   className={className}
                                   data-socket={true}
                                   data-name={name}
+                                  data-group={group}
                                   data-node-id={nodeId}
                                   onMouseDown={onMouseDown} />;
         const socketTitle = <h3 className={`${css.socketTitle} ${css[`type_${type}`]}`}>{name}</h3>;
@@ -73,8 +75,18 @@ export function BPNode({node, scene, isSelected, selectedSinkSocket,
         event.stopPropagation();
         onNodeSelect(id);
     };
+
+    let className = css.node;
+    if (isSelected) className += ' ' + css.selected;
+    if (selectedSinkSocket) {
+        const lines = scene.lines.filter(line => line.sinkSocket.nodeId === selectedSinkSocket.nodeId &&
+            line.sinkSocket.name === selectedSinkSocket.name);
+        const isConnected = lines.some(line => line.sourceSocket.nodeId === node.id);
+        if (selectedSinkSocket.nodeId !== node.id && !isConnected) className += ' ' + css.inactive;
+    }
+
     return (
-        <div className={`${css.node} ${isSelected ? css.selected : ''}`} style={style} onMouseDown={onMouseDown}>
+        <div className={className} style={style} onMouseDown={onMouseDown}>
             <h2 className={css.nodeTitle}>{node.name}</h2>
             <div className={css.sources}>
                 {renderSockets(sources, scene, selectedSinkSocket, onSocketSelect, onValueChange)}

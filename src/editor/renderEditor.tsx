@@ -8,15 +8,12 @@ import {ISocketPositions} from '../interfaces/ISocketPositions';
 import {BPLineList} from './BPLineList/BPLineList';
 import {compile} from '../util/compile';
 
-export function renderEditor(scene: IScene) {
+export function renderEditor(scene: IScene, element, onChange) {
     const socketPositions$ = async<ISocketPositions>();
-    const onChange = (scene: IScene) => {
-        console.log(compile(scene));
-    };
     ReactDOM.render((
         <div style={{width: '100%', height: '100%'}}>
             <BPEditor scene={scene} socketPositions$={socketPositions$}  onChange={onChange}/>
         </div>
-    ), document.getElementById('app'));
+    ), element);
     console.log(scene)
 }

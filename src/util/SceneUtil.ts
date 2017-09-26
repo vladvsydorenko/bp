@@ -2,6 +2,19 @@ import {ISocket} from '../interfaces/ISocket';
 import {IScene} from '../interfaces/IScene';
 import {ILine} from '../interfaces/ILine';
 import {INode} from '../interfaces/INode';
+import {INodeDescriptor} from '../interfaces/INodeDescriptor';
+import {UID} from './uid';
+
+function makeSockets(sockets: INodeDescriptor['sources'], group: string, nodeId: string): ISocket[] {
+    return Object.keys(sockets).map(name => {
+        return {
+            name,
+            type: sockets[name],
+            nodeId,
+            group
+        };
+    });
+}
 
 export namespace SceneUtil {
     export function findNodeById(id: string, scene: IScene): INode | undefined {
@@ -49,5 +62,17 @@ export namespace SceneUtil {
         const index = scene.lines.indexOf(line);
         scene.lines.splice(index, 1);
         return scene;
+    }
+
+    export function makeNode({sources, sinks, name}: INodeDescriptor) {
+        const id = UID('node');
+        return {
+            id,
+            name,
+            sources: makeSockets(sources, 'sources', id),
+            sinks: makeSockets(sinks, 'sinks', id),
+            handler: 'default',
+            position: {x: 0, y: 0}
+        };
     }
 }
