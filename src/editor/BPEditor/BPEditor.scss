@@ -29,9 +29,10 @@
 
 .dialog {
   position: absolute;
+  overflow: auto;
   margin-left: -20px;
   margin-top: -20px;
-  background-color: #eee;
+  bottom: 0;
 }
 
 .descriptor {
