@@ -63,7 +63,7 @@ export function renderSockets(sockets: ISocket[], scene: IScene, selectedSinkSoc
         const inputType = typeMap[type];
         const socketInput = inputType && <input className={css.socketInput}
                                                 type={inputType}
-                                                value={socket.value || ''}
+                                                value={typeof socket.value !== 'undefined' ? socket.value : ''}
                                                 checked={!!socket.value}
                                                 onChange={onChange}/>;
         const titleContainer = (

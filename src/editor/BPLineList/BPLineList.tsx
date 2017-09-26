@@ -4,6 +4,7 @@ import {BPNode} from '../BPNode/BPNode';
 import {AsyncSubject} from 'most-subject';
 import {ISocketPositions} from '../../interfaces/ISocketPositions';
 import {ISocket} from '../../interfaces/ISocket';
+import {merge} from 'most';
 const css = require('./BPLineList.scss');
 
 export interface IBPLineListProps {
@@ -27,8 +28,16 @@ export class BPLineList extends React.Component<IBPLineListProps, IBLineListStat
     public componentDidMount() {
         const self = this;
         // todo: unsubscribe on unmount
-        this.props.socketPositions$.observe(positions => self.setState({positions}));
+        merge(
+            this.props.socketPositions$.throttle(30),
+            this.props.socketPositions$.debounce(50),
+        )
+            .observe(positions => self.setState({positions}));
     }
+
+    // public shouldComponentUpdate(nextProps: IBPLineListProps, nextState) {
+    //     return nextProps.scene.lines.length !== 0;
+    // }
 
     public render() {
         const {scene, selectedSinkSocket, onSelect} = this.props;

@@ -7,11 +7,13 @@ import {UID} from './uid';
 
 function makeSockets(sockets: INodeDescriptor['sources'], group: string, nodeId: string): ISocket[] {
     return Object.keys(sockets).map(name => {
+        const type = typeof sockets[name] === 'string' ? sockets[name] : sockets[name]['type'];
         return {
             name,
-            type: sockets[name],
+            type,
             nodeId,
-            group
+            group,
+            value: sockets[name]['initialValue'],
         };
     });
 }
@@ -79,18 +81,21 @@ export namespace SceneUtil {
     export function fixSockets(socketsDescriptor, sockets, group, nodeId) {
         return Object.keys(socketsDescriptor).map(name => {
             const socket = sockets.find(socket => socket.name === name);
+            const type = typeof socketsDescriptor[name] === 'string' ?
+                socketsDescriptor[name] : socketsDescriptor[name]['type'];
             return {
                 name,
-                type: socketsDescriptor[name],
+                type,
                 nodeId,
                 group,
-                value: socket ? socket.value : undefined,
+                value: socket ? socket.value : socketsDescriptor[name].value,
             }
         });
     }
     export function fixScene(scene: IScene) {
         const {nodes, lines, nodeDescriptors} = scene;
-        scene.nodes = nodes.map(node => {
+        scene.nodes = nodes.filter(node => !!nodeDescriptors[node.name]);
+        scene.nodes = scene.nodes.map(node => {
             node.sources = SceneUtil.fixSockets(nodeDescriptors[node.name].sources, node.sources, 'sources', node.id);
             node.sinks = SceneUtil.fixSockets(nodeDescriptors[node.name].sinks, node.sinks, 'sinks', node.id);
             return node;

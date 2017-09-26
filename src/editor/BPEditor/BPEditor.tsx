@@ -18,6 +18,7 @@ export interface IBPEditorProps {
     socketPositions$: AsyncSubject<ISocketPositions>;
     onChange: (scene: IScene) => void;
     onDescriptorAdd: (url: string) => void;
+    onDescriptorRemove: (descriptor: INodeDescriptor) => void;
 }
 export interface IBPEditorState {
     canvasPosition: t_position;
@@ -73,7 +74,16 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
 
         return (
             <div className={css.container}>
-                <div className={css.run}><a href="/" target="_blank">Run</a></div>
+                <div className={css.help}>
+                    <p>How to use</p>
+                    <p>Add Node: Double click/Left click</p>
+                    <p>Connect Nodes: Click on sink socket (right side)
+                        then on source socket at another node (on left side)</p>
+                    <p>Remove Connection: Click on line to remove it</p>
+                    <p>Add you own descriptor: Left click and paste code to input</p>
+                </div>
+                <div className={css.run}><a href="./" target="_blank">Run</a></div>
+                <div className={css.code}><a href="./?code" target="_blank">Compile</a></div>
                 <div id="canvas"
                      className={css.nodeList}
                      onMouseDown={this.onCanvasSelectFn}
@@ -102,11 +112,18 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         const self = this;
         const nodeElements = Object.keys(nodeDescriptors).map(key => {
             const descriptor = nodeDescriptors[key];
-            const onMouseDown = event => {
+            const onAddMouseDown = event => {
                 event.stopPropagation();
                 self.onAddNode(descriptor);
             };
-            return <div key={descriptor.name} className={css.descriptor} onMouseDown={onMouseDown}>{descriptor.name}</div>;
+            const onRemoveMouseDown = event => {
+                event.stopPropagation();
+                self.onRemoveNodeDescriptor(descriptor);
+            };
+            return <div key={descriptor.name} className={css.descriptor} onMouseDown={onAddMouseDown}>
+                {descriptor.name}
+                <div className={css.descriptorRemove} onMouseDown={onRemoveMouseDown}>x</div>
+            </div>;
         });
 
         return (
@@ -168,6 +185,10 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         this.props.onChange(this.props.scene);
         this.updateState$.next(this.state);
     }
+    private onRemoveNodeDescriptor(descriptor: INodeDescriptor) {
+        this.props.onDescriptorRemove(descriptor);
+        this.updateState$.next(this.state);
+    }
     private onDescriptorAdd(url) {
         const input = document.getElementById('descriptor') as any;
         if (!input) return;
@@ -180,6 +201,7 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         const sourceSocket = node.sources.find(source => source.name === socket.name);
         (this.state as any).isAddNodeDialogOpen = false;
         if (!sourceSocket) return;
+        console.log('value', value);
         sourceSocket.value = value;
         this.props.onChange(this.props.scene);
         this.updateState$.next(this.state);

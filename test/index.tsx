@@ -1,11 +1,17 @@
 import * as most from 'most';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import {IScene} from '../src/interfaces/IScene';
 import {simpleNodeHandler} from '../src/nodeHandlers/simpleNodeHandler';
 import {renderEditor} from '../src/editor/renderEditor';
 import {baseDescriptors} from './testNodes';
 import {SceneUtil} from '../src/util/SceneUtil';
-import {compile} from '../src/util/compile';
+import {compileMostJs} from '../src/util/compile/compileMostJs';
 import {async, hold} from 'most-subject';
+import {INodeDescriptor} from '../src/interfaces/INodeDescriptor';
+import {BPCodeViewer} from '../src/editor/BPCodeViewer/BPCodeViewer';
+import {compileRxJs} from '../src/util/compile/compileRxjsJs';
+import {testScene} from './testScene';
 
 function makeDescriptorFromCode(code) {
     eval(`window.recentDescriptor = ${code}`);
@@ -13,7 +19,11 @@ function makeDescriptorFromCode(code) {
 }
 
 function makeScene(): IScene {
-    const serialized = localStorage.getItem('scene');
+    let serialized = localStorage.getItem('scene');
+    if (!serialized) {
+        serialized = testScene;
+        localStorage.setItem('scene', serialized);
+    }
     const savedDescriptors: any = window['savedDescriptors'] = localStorage.getItem('savedDescriptors') ?
         JSON.parse(localStorage.getItem('savedDescriptors') as any) : {};
     let nodeDescriptors = window['descriptors'] = {...baseDescriptors} as any;
@@ -39,6 +49,10 @@ function isEditor(): boolean {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.has('editor');
 }
+function isCode(): boolean {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.has('code');
+}
 
 const scene = makeScene();
 if (isEditor()) {
@@ -52,7 +66,6 @@ if (isEditor()) {
             nodes,
             lines
         }));
-        localStorage.setItem('compiled', compile(scene));
         updateDate();
     };
     const onDescriptorAdd = (code) => {
@@ -65,13 +78,49 @@ if (isEditor()) {
         updateDate();
     };
 
-    renderEditor(scene, document.getElementById('app'), onSceneChange, onDescriptorAdd);
+    const onDescriptorRemove = (descriptor: INodeDescriptor) => {
+        delete window['descriptors'][descriptor.name];
+        delete scene.nodeDescriptors[descriptor.name];
+        const savedDescriptors = window['savedDescriptors'];
+        delete window['savedDescriptors'][descriptor.name];
+        localStorage.setItem('savedDescriptors', JSON.stringify(savedDescriptors));
+        SceneUtil.fixScene(scene);
+        onSceneChange(scene);
+        updateDate();
+    };
+
+    renderEditor(scene, document.getElementById('app'), onSceneChange, onDescriptorAdd, onDescriptorRemove);
+    (document.querySelector('title') as any).innerText = 'BP: Editor';
 }
-else {
-    const updated = localStorage.getItem('updated');
+else if (isCode()) {
+    let updated = localStorage.getItem('updated');
 
     const run = () => {
-        const compiled = localStorage.getItem('compiled');
+        localStorage.setItem('compiledMostJs', compileMostJs(scene));
+        localStorage.setItem('compiledRxJs', compileRxJs(scene));
+
+        const codeMostJs = localStorage.getItem('compiledMostJs');
+        const codeRxJs = localStorage.getItem('compiledRxJs');
+        if (!codeMostJs || !codeRxJs) return;
+        ReactDOM.render(<BPCodeViewer codeRxJs={codeRxJs} codeMostJs={codeMostJs} />, document.getElementById('app'));
+   };
+
+    const check = () => {
+        const date = localStorage.getItem('updated');
+        if (date !== updated) window.location.reload();
+        updated = date;
+        setTimeout(check, 1000);
+    };
+    check();
+    run();
+    window['hljs'].initHighlightingOnLoad();
+    (document.querySelector('title') as any).innerText = 'BP: Code Viewer';
+}
+else {
+    let updated = localStorage.getItem('updated');
+
+    const run = () => {
+        const compiled = compileMostJs(scene);
         if (!compiled) return;
         window['most'] = most;
         window['hold'] = hold;
@@ -83,8 +132,10 @@ else {
     const check = () => {
         const date = localStorage.getItem('updated');
         if (date !== updated) window.location.reload();
-        setTimeout(check, 500);
+        updated = date;
+        setTimeout(check, 1000);
     };
     check();
     run();
+    (document.querySelector('title') as any).innerText = 'BP: App';
 }
