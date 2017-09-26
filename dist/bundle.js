@@ -29315,7 +29315,6 @@ exports.baseDescriptors = {
         sinks: {},
         run: ({ head, body, footer, elementId }) => {
             most_1.combine((head, body, footer, elementId) => {
-                console.log('here');
                 ReactDOM.render(React.createElement("div", { children: [head, body, footer] }), document.getElementById(elementId));
             }, head, body, footer, elementId)
                 .drain();

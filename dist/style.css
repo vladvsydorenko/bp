@@ -33,7 +33,8 @@
   display: inline-block;
   vertical-align: top;
   margin-left: 14px;
-  margin-right: -7px; }
+  margin-right: -7px;
+  text-align: right; }
 
 .BPNode__socket___eeiuG {
   margin-bottom: 10px; }
