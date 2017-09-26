@@ -176,7 +176,6 @@ export const baseDescriptors = {
         sinks: {},
         run: ({head, body, footer, elementId}) => {
             combine((head, body, footer, elementId: string) => {
-                console.log('here');
                 ReactDOM.render(<div children={[head, body, footer]}/>, document.getElementById(elementId));
             }, head, body, footer, elementId)
                 .drain();
