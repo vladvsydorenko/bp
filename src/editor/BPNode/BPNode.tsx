@@ -2,7 +2,7 @@ import * as React from 'react';
 import {INode} from '../../interfaces/INode';
 import {ISocket} from '../../interfaces/ISocket';
 import {IScene} from '../../interfaces/IScene';
-import {SceneUtil} from '../../util/SceneUtil';
+import {SyntheticEvent} from 'react';
 const css = require('./BPNode.scss');
 
 export interface IBPNodeProps {
@@ -15,6 +15,12 @@ export interface IBPNodeProps {
     selectedSinkSocket: ISocket | null;
 }
 
+const typeMap = {
+    'string': 'text',
+    'number': 'number',
+    'boolean': 'checkbox'
+};
+
 export function renderSockets(sockets: ISocket[], scene: IScene, selectedSinkSocket: ISocket|null,
                               onSocketSelect, onValueChange: IBPNodeProps['onValueChange']) {
     return sockets.map((socket) => {
@@ -23,8 +29,16 @@ export function renderSockets(sockets: ISocket[], scene: IScene, selectedSinkSoc
             event.stopPropagation();
             onSocketSelect(socket);
         };
-        const onChange = event => {
-            onValueChange(event.target[type === 'number' ? 'valueAsNumber' : 'value'], socket);
+        const onChange = ({target}: SyntheticEvent<EventTarget>) => {
+            let value;
+            if (type === 'number')
+                value = target['valueAsNumber'];
+            else if (type === 'string')
+                value = target['value'];
+            else
+                value = target['checked'];
+
+            onValueChange(value, socket);
         };
         const isSelected = selectedSinkSocket &&
             selectedSinkSocket.nodeId === socket.nodeId &&
@@ -46,9 +60,12 @@ export function renderSockets(sockets: ISocket[], scene: IScene, selectedSinkSoc
                                   data-node-id={nodeId}
                                   onMouseDown={onMouseDown} />;
         const socketTitle = <h3 className={`${css.socketTitle} ${css[`type_${type}`]}`}>{name}</h3>;
-        const socketInput = <input className={css.socketInput}
-                                   type={type === 'number' ? 'number' : 'text'}
-                                   value={socket.value || ''} onChange={onChange}/>;
+        const inputType = typeMap[type];
+        const socketInput = inputType && <input className={css.socketInput}
+                                                type={inputType}
+                                                value={socket.value || ''}
+                                                checked={!!socket.value}
+                                                onChange={onChange}/>;
         const titleContainer = (
             <div key={1} className={css.socketTitleContainer}>
                 {socketTitle}
@@ -73,6 +90,7 @@ export function BPNode({node, scene, isSelected, selectedSinkSocket,
     };
     const onMouseDown = event => {
         event.stopPropagation();
+        if (event.target.tagName === 'INPUT') return;
         onNodeSelect(id);
     };
 

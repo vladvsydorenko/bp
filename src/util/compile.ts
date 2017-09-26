@@ -21,7 +21,7 @@ function compileSources({sources}: INode, id) {
 }
 
 function compileSinks({sinks, name}: INode, id) {
-    return `const ${id}Sinks = nodes[${name}].run(${id}Sources);`;
+    return `const ${id}Sinks = nodes.${name}.run(${id}Sources);`;
 }
 
 function compileLine({sourceSocket, sinkSocket}: ILine, scene: IScene) {

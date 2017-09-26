@@ -1,32 +1,32 @@
-import {INodeDescriptor} from '../src/interfaces/INodeDescriptor';
+// import {INodeDescriptor} from '../src/interfaces/INodeDescriptor';
+// import {combine, from} from 'most';
 
-export const testNodes: INodeDescriptor[] = [
-    {
-        name: 'toUpperCase',
+export const baseDescriptors = {
+    logNode: {
+        name: 'log',
         sources: {
-            text: 'string',
+            value: 'any',
         },
-        sinks: {
-            text: 'string',
-        },
-        run: ({text}) => {
-            return {
-                text: text.map(text => text.toUpperCase()),
-            };
+        sinks: {},
+        run: ({value}) => {
+            value.observe(value => console.log(value));
+            return {};
         }
     },
-    {
-        name: 'toLowerCase',
+    string: {
+        name: 'string',
         sources: {
-            text: 'string',
+            string: 'string',
         },
         sinks: {
-            text: 'string',
+            string: 'string',
         },
-        run: ({text}) => {
+        run: ({string}) => {
             return {
-                text: text.map(text => text.toLowerCase()),
+                string,
             };
         }
-    },
-];
+    }
+};
+
+

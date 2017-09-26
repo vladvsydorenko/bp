@@ -17,6 +17,7 @@
   padding-bottom: 2px;
   background-color: $color_node_bg;
   border-radius: 6px;
+  cursor: move;
 
   &.selected {
     margin-left: -2px;
@@ -60,10 +61,13 @@
   width: $socketCircleSize;
   height: $socketCircleSize;
   border-radius: $socketCircleSize;
+  cursor: pointer;
   background-color: #000;
 
   &.type_string {@include socketType($color_type_string)}
   &.type_number {@include socketType($color_type_number)}
+  &.type_boolean {@include socketType($color_type_boolean)}
+  &.type_any {@include socketType($color_type_any)}
   &.selected {
     margin-left: -2px;
     margin-top: -2px;
@@ -92,6 +96,8 @@
 
   &.type_string {color: $color_type_string;}
   &.type_number {color: $color_type_number;}
+  &.type_boolean {color: $color_type_boolean;}
+  &.type_any {color: $color_type_any;}
 }
 
 .socketInput {
@@ -103,6 +109,14 @@
   border: none;
   color: $color_input_font;
   background-color: darken($color_node_bg, 4%);
+
+  -webkit-touch-callout: text; /* iOS Safari */
+  -webkit-user-select: text; /* Safari */
+  -khtml-user-select: text; /* Konqueror HTML */
+  -moz-user-select: text; /* Firefox */
+  -ms-user-select: text; /* Internet Explorer/Edge */
+  user-select: text; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 
   &[type=number] {
     max-width: 40px;

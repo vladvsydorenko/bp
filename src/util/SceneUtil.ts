@@ -75,4 +75,36 @@ export namespace SceneUtil {
             position: {x: 0, y: 0}
         };
     }
+
+    export function fixSockets(socketsDescriptor, sockets, group, nodeId) {
+        return Object.keys(socketsDescriptor).map(name => {
+            const socket = sockets.find(socket => socket.name === name);
+            return {
+                name,
+                type: socketsDescriptor[name],
+                nodeId,
+                group,
+                value: socket ? socket.value : undefined,
+            }
+        });
+    }
+    export function fixScene(scene: IScene) {
+        const {nodes, lines, nodeDescriptors} = scene;
+        scene.nodes = nodes.map(node => {
+            node.sources = SceneUtil.fixSockets(nodeDescriptors[node.name].sources, node.sources, 'sources', node.id);
+            node.sinks = SceneUtil.fixSockets(nodeDescriptors[node.name].sinks, node.sinks, 'sinks', node.id);
+            return node;
+        });
+
+        scene.lines = lines.filter(({sourceSocket, sinkSocket}) => {
+            const sourceNode = SceneUtil.findNodeById(sourceSocket.nodeId, scene);
+            const sinkNode = SceneUtil.findNodeById(sinkSocket.nodeId, scene);
+            if (!sourceNode || !sinkNode) return false;
+
+            return sourceNode.sources.some(socket => socket.name === sourceSocket.name) &&
+                sinkNode.sinks.some(socket => socket.name === sinkSocket.name);
+        });
+
+        return scene;
+    }
 }

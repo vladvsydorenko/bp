@@ -17,10 +17,12 @@ export interface IBPEditorProps {
     scene: IScene;
     socketPositions$: AsyncSubject<ISocketPositions>;
     onChange: (scene: IScene) => void;
+    onDescriptorAdd: (url: string) => void;
 }
 export interface IBPEditorState {
     canvasPosition: t_position;
-    isDialogOpen: boolean;
+    isAddNodeDialogOpen: boolean;
+    // isAddDescriptorDialogOpen: boolean;
 }
 
 export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
@@ -40,20 +42,19 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
     private onValueChangeFn = this.onValueChange.bind(this);
     private stopDragFn = this.stopDrag.bind(this);
     private onContextMenuFn = this.onContextMenu.bind(this);
-    private onAddNodeFn = this.onAddNode.bind(this);
 
     constructor(props) {
         super(props);
 
         this.state = {
             canvasPosition: {x: 0, y: 0},
-            isDialogOpen: false,
+            isAddNodeDialogOpen: false,
         };
     }
 
     public render() {
         const {scene, socketPositions$} = this.props;
-        const {canvasPosition, isDialogOpen} = this.state;
+        const {canvasPosition, isAddNodeDialogOpen} = this.state;
 
         const nodeElements = scene.nodes.map(node => {
             const isSelected = !!this.selectedNode && node.id === this.selectedNode.id;
@@ -71,18 +72,22 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         };
 
         return (
-            <div id="canvas"
-                 className={css.nodeList}
-                 onMouseDown={this.onCanvasSelectFn}
-                 onContextMenu={this.onContextMenuFn}
-            >
-                <BPLineList scene={scene}
-                            selectedSinkSocket={this.selectedSinkSocket}
-                            socketPositions$={socketPositions$}
-                            onSelect={this.onLineSelectFn}
-                />
-                <div style={style}>{nodeElements}</div>
-                {isDialogOpen && this.renderDialog()}
+            <div className={css.container}>
+                <div className={css.run}><a href="/" target="_blank">Run</a></div>
+                <div id="canvas"
+                     className={css.nodeList}
+                     onMouseDown={this.onCanvasSelectFn}
+                     onDoubleClick={this.onCanvasSelectFn}
+                     onContextMenu={this.onContextMenuFn}
+                >
+                    <BPLineList scene={scene}
+                                selectedSinkSocket={this.selectedSinkSocket}
+                                socketPositions$={socketPositions$}
+                                onSelect={this.onLineSelectFn}
+                    />
+                    <div style={style}>{nodeElements}</div>
+                    {isAddNodeDialogOpen && this.renderDialog()}
+                </div>
             </div>
         );
     }
@@ -95,7 +100,8 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         };
 
         const self = this;
-        const nodeElements = nodeDescriptors.map((descriptor) => {
+        const nodeElements = Object.keys(nodeDescriptors).map(key => {
+            const descriptor = nodeDescriptors[key];
             const onMouseDown = event => {
                 event.stopPropagation();
                 self.onAddNode(descriptor);
@@ -104,8 +110,10 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         });
 
         return (
-            <div className={css.dialog} style={style}>
+            <div className={css.dialog} style={style} onMouseDown={event => event.stopPropagation()}>
                 {nodeElements}
+                <input id="descriptor" type="text" placeholder={'Code of descriptor'}/>
+                <button onClick={this.onDescriptorAdd.bind(this)}>Add</button>
             </div>
         );
     }
@@ -120,6 +128,7 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         this.updateSocketPositions_DIRTY();
         document.addEventListener('keydown', this.onKeyDown.bind(this));
     }
+
     private updateSocketPositions_DIRTY() {
         const elements = document.querySelectorAll('[data-socket]');
         const positions = {};
@@ -143,12 +152,9 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
     private onKeyDown(event: KeyboardEvent) {
         if (event.code === 'Delete' && this.selectedNode) {
             SceneUtil.removeNodeById(this.selectedNode.id, this.props.scene);
+            this.props.onChange(this.props.scene);
             this.updateState$.next(this.state);
         }
-    }
-    private onContextMenu(event: MouseEvent) {
-        event.stopPropagation();
-        event.preventDefault();
     }
     private onAddNode(descriptor: INodeDescriptor) {
         const node = SceneUtil.makeNode(descriptor);
@@ -157,30 +163,37 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
                 x: this.dialogPosition.x - this.state.canvasPosition.x,
                 y: this.dialogPosition.y - this.state.canvasPosition.y,
             };
-        (this.state as any).isDialogOpen = false;
+        (this.state as any).isAddNodeDialogOpen = false;
         SceneUtil.addNode(node, this.props.scene);
         this.props.onChange(this.props.scene);
+        this.updateState$.next(this.state);
+    }
+    private onDescriptorAdd(url) {
+        const input = document.getElementById('descriptor') as any;
+        if (!input) return;
+        this.props.onDescriptorAdd(input.value);
         this.updateState$.next(this.state);
     }
     private onValueChange(value: any, socket: ISocket) {
         const node = SceneUtil.findNodeById(socket.nodeId, this.props.scene);
         if (!node) return;
         const sourceSocket = node.sources.find(source => source.name === socket.name);
-        (this.state as any).isDialogOpen = false;
+        (this.state as any).isAddNodeDialogOpen = false;
         if (!sourceSocket) return;
         sourceSocket.value = value;
         this.props.onChange(this.props.scene);
         this.updateState$.next(this.state);
     }
     private onCanvasSelect(event) {
-        if (event.nativeEvent.which === 3) {
+        if (event.target.tagName !== 'svg') return;
+        if (event.nativeEvent.which === 3 || event.type === 'dblclick') {
             this.dialogPosition = {x: event.pageX, y: event.pageY};
-            (this.state as any).isDialogOpen = true;
+            (this.state as any).isAddNodeDialogOpen = true;
             this.updateState$.next(this.state);
         }
         else {
             this.isCanvasSelected = true;
-            (this.state as any).isDialogOpen = false;
+            (this.state as any).isAddNodeDialogOpen = false;
             this.unselectAll();
             this.startDrag();
         }
@@ -189,7 +202,7 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         const node = SceneUtil.findNodeById(id, this.props.scene);
         if (!node) return;
         this.selectedNode = node;
-        (this.state as any).isDialogOpen = false;
+        (this.state as any).isAddNodeDialogOpen = false;
         if (this.selectedSinkSocket && this.selectedSinkSocket.nodeId !== node.id)
             this.selectedSinkSocket = null;
         if (doDrag) this.startDrag();
@@ -197,7 +210,8 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
     }
     private onLineSelect(id: string) {
         SceneUtil.removeLineById(id, this.props.scene);
-        (this.state as any).isDialogOpen = false;
+        (this.state as any).isAddNodeDialogOpen = false;
+        this.props.onChange(this.props.scene);
         this.updateState$.next(this.state);
     }
     private onSocketSelect(socket: ISocket) {
@@ -222,28 +236,11 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
         }
         this.updateState$.next(this.state);
     }
-    private unselectAll() {
-        this.selectedNode = null;
-        this.selectedSinkSocket = null;
-        this.selectedSourceSocket = null;
-        (this.state as any).isDialogOpen = false;
-        this.updateState$.next(this.state);
-    }
 
-    private startDrag() {
-        document.addEventListener('mousemove', this.onMouseMoveFn);
-        document.addEventListener('mouseup', this.stopDragFn);
-        document.addEventListener('mouseleave', this.stopDragFn);
+    private onContextMenu(event: MouseEvent) {
+        event.stopPropagation();
+        event.preventDefault();
     }
-    private stopDrag() {
-        this.lastMousePosition = null;
-        this.isCanvasSelected = false;
-        this.props.onChange(this.props.scene);
-        document.removeEventListener('mousemove', this.onMouseMoveFn);
-        document.removeEventListener('mouseup', this.stopDragFn);
-        document.removeEventListener('mouseleave', this.stopDragFn);
-    }
-
     private onMouseMove({x, y}: MouseEvent) {
         if (!this.lastMousePosition) this.lastMousePosition = {x, y};
         const deltaX = x - this.lastMousePosition.x;
@@ -264,5 +261,26 @@ export class BPEditor extends React.Component<IBPEditorProps, IBPEditorState> {
 
         this.updateState$.next(this.state);
         this.lastMousePosition = {x, y};
+    }
+
+    private unselectAll() {
+        this.selectedNode = null;
+        this.selectedSinkSocket = null;
+        this.selectedSourceSocket = null;
+        (this.state as any).isAddNodeDialogOpen = false;
+        this.updateState$.next(this.state);
+    }
+    private startDrag() {
+        document.addEventListener('mousemove', this.onMouseMoveFn);
+        document.addEventListener('mouseup', this.stopDragFn);
+        document.addEventListener('mouseleave', this.stopDragFn);
+    }
+    private stopDrag() {
+        if (!this.isCanvasSelected) this.props.onChange(this.props.scene);
+        this.lastMousePosition = null;
+        this.isCanvasSelected = false;
+        document.removeEventListener('mousemove', this.onMouseMoveFn);
+        document.removeEventListener('mouseup', this.stopDragFn);
+        document.removeEventListener('mouseleave', this.stopDragFn);
     }
 }

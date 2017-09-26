@@ -34,6 +34,7 @@ export class BPLineList extends React.Component<IBPLineListProps, IBLineListStat
         const {scene, selectedSinkSocket, onSelect} = this.props;
         const {positions} = this.state;
         const lineElements = scene.lines.map(({id, sourceSocket, sinkSocket}) => {
+            if (!positions[sourceSocket.nodeId] || !positions[sinkSocket.nodeId]) return;
             const sourceContainer = positions[sourceSocket.nodeId]['sources'];
             const sinkContainer = positions[sinkSocket.nodeId]['sinks'];
             if (!positions[sourceSocket.nodeId] || !positions[sinkSocket.nodeId]) return;

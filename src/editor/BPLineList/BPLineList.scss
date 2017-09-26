@@ -22,9 +22,13 @@
 
 .line {
   stroke: #000;
-  stroke-width: 4;
+  stroke-width: 5;
+  cursor: pointer;
 
   &.type_string {@include lineType($color_type_string)}
   &.type_number {@include lineType($color_type_number)}
+  &.type_boolean {@include lineType($color_type_boolean)}
+  &.type_any {@include lineType($color_type_any)}
+
   &.selected {@include lineType($color_selected)}
 }

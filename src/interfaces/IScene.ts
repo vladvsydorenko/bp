@@ -7,5 +7,5 @@ export interface IScene {
     nodes: INode[];
     lines: ILine[];
     nodeHandlers: { [id:string]: INodeHandler };
-    nodeDescriptors: INodeDescriptor[];
+    nodeDescriptors: { [id:string]: INodeDescriptor };
 }
